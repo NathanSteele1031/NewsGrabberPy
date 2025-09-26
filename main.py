@@ -46,9 +46,7 @@ def show_article_titles(titles):
         number += 1
 
 API_KEY = input("Type the API key: ")
-# articles = news_request(API_KEY, "covid")
-# articles = english_articles(articles)
-# article_titles = titles_of_articles(articles)
+
 def main():
     if not has_gathered_news():
         articles = news_request(API_KEY, "everything")
