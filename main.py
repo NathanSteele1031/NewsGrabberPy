@@ -1,5 +1,8 @@
 import requests, json, time
 
+NEWS_PATH = "Data/news.json"
+GOT_NEWS_PATH = "Data/got_news.txt"
+
 def news_request(API_KEY, q):
     url = f"https://newsdata.io/api/1/latest?apikey={API_KEY}&q={q}"
     response = requests.get(url)
@@ -7,7 +10,7 @@ def news_request(API_KEY, q):
     articles = json_output["results"]
     return articles
 
-def english_articles(articles):
+def get_english_articles(articles):
     english_articles = []
     for article in articles:
         if article["language"] == "english":
@@ -22,24 +25,49 @@ def titles_of_articles(articles):
 
 def has_gathered_news():
     try:
-        with open("got_news.txt", "r") as f:
-            time = f.read()
-        if time.split(" ")[2] == time.ctime().split(" ")[2]:
+        with open(GOT_NEWS_PATH, "r") as f:
+            time_content = f.read()
+        if time_content.split(" ")[2] == time.ctime().split(" ")[2]:
             return True
         return False
     except FileNotFoundError:
-        with open("got_news.txt", "w") as f:
+        with open(GOT_NEWS_PATH, "w") as f:
             pass
         return False
-    except:
-        return False
+
+def write_time():
+    with open(GOT_NEWS_PATH, "w") as f:
+        f.write(time.ctime())
+
+def show_article_titles(titles):
+    number = 1
+    for title in titles:
+        print(f"{number}. {title}")
+        number += 1
 
 API_KEY = input("Type the API key: ")
 # articles = news_request(API_KEY, "covid")
 # articles = english_articles(articles)
 # article_titles = titles_of_articles(articles)
 def main():
-    pass
+    if not has_gathered_news():
+        articles = news_request(API_KEY, "everything")
+        write_time()
+        json.dump(articles, open(NEWS_PATH, "w"))
+        print("Requested Data")
+    else:
+        with open(NEWS_PATH, "r") as f:
+            articles = json.load(f)
+        print("Loaded Data")
+    
+    english_articles = get_english_articles(articles)
+    article_titles = titles_of_articles(english_articles)
+    show_article_titles(article_titles)
+
+    running = True
+    while running:
+        selected_article = int(input("Select an article: "))
+        print(articles[selected_article - 1]["link"])
 
 if __name__ == "__main__":
     main()
