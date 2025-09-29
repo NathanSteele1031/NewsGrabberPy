@@ -1,7 +1,9 @@
 import requests, json, time
+from algorithm import Algorithm
 
 NEWS_PATH = "Data/news.json"
 GOT_NEWS_PATH = "Data/got_news.txt"
+API_KEY = input("Type the API key: ")
 
 def news_request(API_KEY, q):
     url = f"https://newsdata.io/api/1/latest?apikey={API_KEY}&q={q}"
@@ -27,7 +29,7 @@ def has_gathered_news():
     try:
         with open(GOT_NEWS_PATH, "r") as f:
             time_content = f.read()
-        if time_content.split(" ")[2] == time.ctime().split(" ")[2]:
+        if time_content and time_content.split(" ")[2] == time.ctime().split(" ")[2]:
             return True
         return False
     except FileNotFoundError:
@@ -45,8 +47,6 @@ def show_article_titles(titles):
         print(f"{number}. {title}")
         number += 1
 
-API_KEY = input("Type the API key: ")
-
 def main():
     if not has_gathered_news():
         articles = news_request(API_KEY, "everything")
@@ -56,16 +56,24 @@ def main():
     else:
         with open(NEWS_PATH, "r") as f:
             articles = json.load(f)
+        write_time()
         print("Loaded Data")
     
     english_articles = get_english_articles(articles)
     article_titles = titles_of_articles(english_articles)
     show_article_titles(article_titles)
 
+    user_algorithm = Algorithm()
     running = True
+
     while running:
         selected_article = int(input("Select an article: "))
+        if selected_article >= len(article_titles):
+            print("Invalid selection")
+            continue
+        user_algorithm.add_interest_word(english_articles[selected_article - 1]["keywords"])
         print(articles[selected_article - 1]["link"])
+        print(user_algorithm.get_words())
 
 if __name__ == "__main__":
     main()
